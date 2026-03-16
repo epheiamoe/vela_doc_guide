@@ -5,13 +5,13 @@
 
 ## 目录
 
-1. 项目架构概览
-2. 与传统Web app的关键区别
-3. 核心功能实现思路
-4. 关键代码片段和模式
-5. 性能优化技巧
-6. 常见问题和注意事项
-7. 开发注意事项/教训
+1. [项目架构概览](#1-项目架构概览)
+2. [与传统Web app的关键区别](#2-与传统web-app的关键区别)
+3. [核心功能实现思路](#3-核心功能实现思路)
+4. [关键代码片段和模式](#4-关键代码片段和模式)
+5. [性能优化技巧](#5-性能优化技巧)
+6. [常见问题和注意事项](#6-常见问题和注意事项)
+7. [开发注意事项/教训](#7-开发注意事项)
 
 ---
 
@@ -79,32 +79,47 @@ Vela应用的页面由.ux文件组成，每个文件包含三个部分：
 
 #### 2.2.1 存储系统
 
-传统Web: localStorage.setItem('key', 'value');
+```javascript
+// 传统Web
+localStorage.setItem('key', 'value');
 
-Vela: import storage from '@system.storage';
+// Vela
+import storage from '@system.storage';
 storage.get({ key: 'EBOOK_FONT', success: (data) => { } });
 storage.set({ key: 'EBOOK_FONT', value: '30' });
+```
 
 #### 2.2.2 路由系统
 
-Vela: import router from '@system.router';
+```javascript
+import router from '@system.router';
 router.push({ uri: '/pages/detail', params: { name: 'book1' } });
 router.back();
+```
 
 #### 2.2.3 文件系统（Vela独有）
 
+```javascript
 import file from '@system.file';
 file.readText({ uri: 'internal://files/book.txt', success: ... });
 file.readArrayBuffer({ uri: 'internal://files/book.txt', position: 0, length: 1000 });
 file.writeText({ uri: 'internal://files/output.txt', text: 'content' });
 file.list({ uri: 'internal://files/books/', success: ... });
+```
 
 ### 2.3 数据绑定
 
 Vela使用private/public/protected定义数据：
-private: { message: 'Hello' }
 
-直接修改即可触发更新：this.message = 'World';
+```javascript
+private: { message: 'Hello' }
+```
+
+直接修改即可触发更新：
+
+```javascript
+this.message = 'World';
+```
 
 ### 2.4 生命周期
 
@@ -131,6 +146,7 @@ private: { message: 'Hello' }
 
 #### 3.1.1 文件结构
 
+```
 internal://files/books/{bookDir}/
 ├── lindex.txt        # 索引文件
 ├── indexes/          # 章节索引
@@ -138,9 +154,11 @@ internal://files/books/{bookDir}/
 ├── content/         # 章节内容
 │   └── 0.txt       # UTF-16 LE编码
 └── cover.jpg
+```
 
 #### 3.1.2 核心分页逻辑
 
+```javascript
 readFileText(readOffset, cb) {
   let length = this.txtSizePage * 2;  // UTF-16每字符2字节
   const maxLength = this.allSize - readOffset;
@@ -161,6 +179,7 @@ readFileText(readOffset, cb) {
     }
   });
 }
+```
 
 ### 3.2 滑动翻页实现
 
@@ -169,15 +188,18 @@ readFileText(readOffset, cb) {
 - swipe: row - 左右滑动切换章节  
 - swipe: off - 点击翻页
 
+```javascript
 onTouchEnd(e) {
   if (this.overscrollDistance > this.chapterSwitchSensitivity) {
     if (this.isAtChapterStart) this.changeChapter(-1);
     else if (this.isAtChapterEnd) this.changeChapter(1);
   }
 }
+```
 
 ### 3.3 进度保存与同步
 
+```javascript
 // 进度数据结构
 {
   chapterIndex: 5,
@@ -195,9 +217,11 @@ setupAutoSave() {
     }, this.saveIntervalValue * 1000);
   }
 }
+```
 
 ### 3.4 手机-手环互联
 
+```javascript
 import interconnect from '@system.interconnect';
 
 export default class Interconn {
@@ -215,6 +239,7 @@ export default class Interconn {
     });
   }
 }
+```
 
 ---
 
@@ -222,6 +247,7 @@ export default class Interconn {
 
 ### 4.1 缓存模式
 
+```javascript
 // 文件缓存
 if (typeof global.__storage_cache__ === 'undefined') {
   global.__storage_cache__ = null;
@@ -241,9 +267,11 @@ async function getCachedChapter(bookName, chapterIndex) {
   chapterCache.set(key, { data: chapter, timestamp: Date.now() });
   return chapter;
 }
+```
 
 ### 4.2 Promise化回调API
 
+```javascript
 // utils/runAsyncFunc.js
 export default function runAsyncFunc(func, params) {
   return new Promise((resolve, reject) => {
@@ -257,15 +285,19 @@ export default function runAsyncFunc(func, params) {
 
 // 使用
 const data = await runAsyncFunc(file.readText, { uri: '...' });
+```
 
 ### 4.3 深拷贝
 
+```javascript
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
+```
 
 ### 4.4 内存管理
 
+```javascript
 onDestroy() {
   this.timer && clearInterval(this.timer);
   this.page1 = null;
@@ -277,6 +309,7 @@ changeChapter(offset) {
   global.runGC();  // 切换章节时主动GC
   this.loadChapter(nextIndex, () => {...});
 }
+```
 
 ---
 
@@ -284,27 +317,33 @@ changeChapter(offset) {
 
 ### 5.1 懒加载章节内容
 
+```javascript
 loadInitialSegments() {
   this.readFileText(this.currentFileOffset, (str, bytesRead) => {
     this.page1 = { text: str, offset: this.currentFileOffset };
     this.loadNextSegmentNoScroll();  // 预加载下一页
   });
 }
+```
 
 ### 5.2 页面分页
 
+```javascript
 loadPage(page) {
   const start = page * this.pageSize;
   this.visibleBooks = this.allBooks.slice(start, start + this.pageSize);
   this.currentPage = page;
 }
+```
 
 ### 5.3 减少重绘
 
+```javascript
 onScroll(e) {
   if (this.wait) return;  // 加载中不处理
   this.currentScrollTop = e.scrollY;
 }
+```
 
 ---
 
@@ -312,21 +351,26 @@ onScroll(e) {
 
 ### 6.1 文件路径问题
 
+```javascript
 // 正确
 const uri = 'internal://files/books/book1/content/0.txt';
 
 // 错误
 const uri = './files/book1/content/0.txt';
+```
 
 ### 6.2 UTF-16编码
 
+```javascript
 let str = '';
 for (let i = 0; i < buffer.length; i += 2) {
   str += String.fromCharCode(buffer[i + 1] * 256 + buffer[i]);
 }
+```
 
 ### 6.3 异步API
 
+```javascript
 // 错误：连续await
 const book1 = await bookStorage.get('book1');
 const book2 = await bookStorage.get('book2');
@@ -336,6 +380,7 @@ const [b1, b2] = await Promise.all([
   bookStorage.get('book1'),
   bookStorage.get('book2')
 ]);
+```
 
 ---
 
@@ -347,11 +392,13 @@ const [b1, b2] = await Promise.all([
 2. 真机调试
 3. try-catch包裹关键API
 
+```javascript
 try {
   const data = await runAsyncFunc(file.readText, { uri: path });
 } catch (e) {
   console.error('读取失败:', e);
 }
+```
 
 ### 7.2 发布检查清单
 
