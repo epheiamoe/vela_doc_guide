@@ -7,6 +7,7 @@
 | 文档 | 说明 |
 |------|------|
 | [开发指南](./vela-dev-guide.md) | 官方API整理、环境搭建、常见问题 |
+| [UI开发指南](./vela-ui-guide.md) | 通用UI设计规范、代码模板、素材 |
 | [输入法组件](./input-method-guide.md) | 第三方输入法组件使用 |
 | [实战教程](./ebook-app-tutorial.md) | 复杂项目完整分析 |
 | [AI速查](./AI-QUICKREF.md) | 最小上下文快速入口 |
@@ -27,6 +28,7 @@ vela_doc_guide/
     ├── README.md            # 本文件
     ├── AI-QUICKREF.md       
     ├── vela-dev-guide.md    
+    ├── vela-ui-guide.md     # UI开发指南
     ├── input-method-guide.md 
     └── ebook-app-tutorial.md 
 ```
