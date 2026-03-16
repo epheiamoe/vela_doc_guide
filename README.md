@@ -29,6 +29,30 @@
 
 ---
 
+## OpenCode 集成
+
+本项目提供 **OpenCode 自定义工具**，可在 OpenCode 中直接调用：
+
+### 工具列表
+
+| 工具 | 功能 |
+|------|------|
+| `velaApi` | 查询 API 参考（router/storage/file/sensor） |
+| `velaTemplate` | 获取项目模板（page/component/manifest） |
+| `velaUi` | 查询 UI 规范（colors/fonts/spacing/components） |
+| `velaQuickRef` | 快速参考（diff/lifecycle/devices/tips） |
+
+### 使用方式
+
+1. 克隆本项目作为开发目录
+2. OpenCode 会自动加载 `.opencode/tools/vela.ts`
+3. 直接对话调用工具，如：
+   - "查询 storage API"
+   - "给我一个页面模板"
+   - "UI颜色规范是什么"
+
+---
+
 ## 技术概览
 
 | 维度 | 说明 |
