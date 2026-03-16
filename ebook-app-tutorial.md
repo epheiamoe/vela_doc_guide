@@ -19,6 +19,7 @@
 
 ### 1.1 目录结构
 
+```
 com.bandbbs.ebook/
 ├── src/
 │   ├── pages/                    # 页面目录
@@ -42,6 +43,7 @@ com.bandbbs.ebook/
 │   └── manifest.json              # 应用配置
 ├── package.json
 └── README.md
+```
 
 ### 1.2 页面架构特点
 
