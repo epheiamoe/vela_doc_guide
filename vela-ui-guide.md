@@ -1,6 +1,42 @@
 # Vela 应用 UI 开发指南
 
-> 基于实际项目提取的通用UI设计规范，适用于各类Vela手表应用开发
+> 基于实际项目（弦电子书）提取的通用UI设计规范，适用于各类Vela手表应用开发
+
+---
+
+## ⚡ 快速参考（AI开发必读）
+
+### 标准页面结构
+```
+背景:#000000
+├── hd.png (336x102, 顶部状态栏)
+├── back.png (72x72, 6,6, 返回按钮)
+├── 标题 (32px bold white, 78,35)
+├── list (padding: 86px 6px)
+└── bt.png (336x102, 底部操作栏, 可选)
+```
+
+### 列表项样式
+```
+.item {
+  height: 112px;
+  background: #262626;
+  border-radius: 36px;
+  padding: 14px 20px;
+  margin-bottom: 8px;
+}
+```
+
+### 文字样式
+```
+主标题: font-size: 32px; font-weight: bold; color: white;
+副标题: font-size: 28px; font-weight: bold; color: rgba(255,255,255,0.6);
+```
+
+### 颜色
+```
+背景: #000000 | 卡片: #262626 | 强调: #0D6EFF | 文字: #FFFFFF
+```
 
 ---
 
@@ -745,6 +781,297 @@ chapterSwitchStyle: 'button' | 'boundary' | 'swipe'
 <marquee scrollamount="22" text-offset="25">长文本内容</marquee>
 <!-- scrollamount: 滚动速度 -->
 <!-- text-offset: 滚动留白 -->
+```
+
+---
+
+## 8. 多设备适配详解
+
+> 本节基于电子书阅读器项目，分析其多设备适配方案
+
+### 8.1 设备类型与屏幕参数
+
+| 设备类型 | deviceType | designWidth | 屏幕分辨率 | 屏幕形状 | 典型设备 |
+|----------|------------|-------------|------------|----------|----------|
+| 方屏手环 | watch | 336 | 336×480 | rect | 小米手环8Pro/9Pro |
+| 胶囊屏手表 | watch | 192 | 390×312 | pill-shaped | REDMI Watch 5/6 |
+| 圆形表盘 | watch | 480 | 454×454 | circle | 圆形手表 |
+
+### 8.2 manifest.json 配置
+
+```json
+{
+  "package": "com.example.app",
+  "name": "AppName",
+  "deviceTypeList": ["watch"],
+  "config": {
+    "designWidth": 336
+  },
+  "features": [
+    { "name": "system.device" }
+  ]
+}
+```
+
+### 8.3 获取设备信息
+
+```javascript
+import device from '@system.device'
+
+export default {
+  private: {
+    screenShape: 'rect',
+    screenWidth: 336,
+    screenHeight: 480
+  },
+  
+  onInit() {
+    device.getInfo({
+      success: (ret) => {
+        this.screenShape = ret.screenShape  // 'circle', 'rect', 'pill-shaped'
+        this.screenWidth = ret.screenWidth
+        this.screenHeight = ret.screenHeight
+      }
+    })
+  }
+}
+```
+
+### 8.4 条件渲染适配
+
+使用 `if` 条件渲染不同屏幕的UI：
+
+```html
+<template>
+  <div class="page">
+    <!-- 圆屏布局 -->
+    <div if="{{screenShape === 'circle'}}">
+      <text>圆屏专用内容</text>
+    </div>
+    
+    <!-- 方屏/胶囊屏布局 -->
+    <div else>
+      <text>方屏/胶囊屏内容</text>
+    </div>
+  </div>
+</template>
+```
+
+### 8.5 媒体查询适配
+
+```css
+/* 圆屏 */
+@media screen and (shape: circle) {
+  .container {
+    padding-left: 80px;
+  }
+}
+
+/* 方屏 */
+@media screen and (shape: rect) {
+  .container {
+    padding-top: 50px;
+  }
+}
+
+/* 胶囊屏 */
+@media screen and (shape: pill-shaped) {
+  .container {
+    padding-top: 30px;
+  }
+}
+```
+
+### 8.6 设计宽度 (designWidth) 适配
+
+```json
+// manifest.json - 针对不同基准设计
+{
+  "config": {
+    "designWidth": 336  // 方屏基准
+  }
+}
+```
+
+系统会自动将 CSS 中的尺寸数值按比例转换到目标设备。
+
+### 8.7 百分比与 Flex 适配
+
+```html
+<!-- 推荐：使用百分比和 flex-grow 自动适应 -->
+<div style="width: 100%; flex-direction: column;">
+  <div style="flex-grow: 1;">
+    自适应内容区
+  </div>
+</div>
+
+<!-- 不推荐：固定像素值 -->
+<div style="width: 336px;">
+```
+
+### 8.8 电子书 App 适配示例
+
+```html
+<template>
+  <div class="page">
+    <!-- 顶部状态栏 - 圆屏调整位置 -->
+    <img if="{{screenShape === 'circle'}}" 
+          static src="/common/images/hd.png" 
+          style="position: absolute; left: 13px; top: 0px; width: 454px; height: 116px;" />
+    <img else static src="/common/images/hd.png" 
+          style="position: absolute; left: 0px; top: 0px; width: 336px; height: 102px;" />
+    
+    <!-- 返回按钮 - 圆屏调整 -->
+    <img if="{{screenShape === 'circle'}}"
+          static src="/common/images/back.png" 
+          @click="back" 
+          style="position: absolute; left: 19px; top: 6px; width: 72px; height: 72px;"/>
+    <img else static src="/common/images/back.png" 
+          @click="back" 
+          style="position: absolute; left: 6px; top: 6px; width: 72px; height: 72px;"/>
+  </div>
+</template>
+```
+
+### 8.9 适配检查清单
+
+- [ ] manifest.json 配置正确的 designWidth
+- [ ] 申请 system.device 权限
+- [ ] 使用 device.getInfo() 获取屏幕信息
+- [ ] 使用条件渲染 if="{{screenShape === 'xxx'}}" 适配不同屏幕
+- [ ] 使用百分比和 Flex 布局而非固定像素
+- [ ] 测试方屏、圆屏、胶囊屏三种设备
+
+---
+
+## 9. 完整样式模板
+
+### 9.1 style.css (电子书阅读器风格)
+
+```css
+/* 页面容器 */
+.page {
+  width: 336px;
+  height: 480px;
+  background-color: #000000;
+  position: relative;
+}
+
+/* 列表容器 */
+.list {
+  width: 336px;
+  height: 480px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  padding: 86px 6px;
+}
+
+/* 列表项 */
+.item {
+  width: 100%;
+  height: 112px;
+  padding: 14px 20px;
+  margin-bottom: 8px;
+  background-color: #262626;
+  border-radius: 36px;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* 选中状态 */
+.item2 {
+  background-color: #0D6EFF !important;
+}
+
+/* 列表项内容 */
+.item-content {
+  width: 100%;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: flex-start;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 主标题 */
+.itemtext {
+  font-size: 32px;
+  width: 100%;
+  font-weight: bold;
+  color: white;
+  text-overflow: ellipsis;
+  lines: 1;
+}
+
+/* 副标题 */
+.itemtext2 {
+  font-size: 28px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  text-overflow: ellipsis;
+  lines: 1;
+}
+
+/* 封面列表项 */
+.cover-item {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.cover-image {
+  width: 64px;
+  height: 84px;
+  background-color: #333;
+  margin-right: 16px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* 警告项 */
+.warning-item {
+  background-color: #ad0000;
+  padding: 2px 20px;
+}
+
+/* 分页控件 */
+.pagination-container {
+  width: 100%;
+  height: 80px;
+  background-color: transparent;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination-controls {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+}
+
+.pagination-button {
+  width: 72px;
+  height: 72px;
+}
+
+.pagination-text {
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+}
+
+/* 搜索浮窗 */
+.search-fab-container {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  width: 72px;
+  height: 72px;
+}
 ```
 
 ---

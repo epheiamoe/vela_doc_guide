@@ -269,6 +269,30 @@ handleEvent(evt) {
 }
 ```
 
+**父传子广播：** 通过 $broadcast
+```javascript
+// 父组件
+this.$broadcast('update', { value: 'new data' })
+
+// 子组件
+this.$on('update', (data) => {
+  console.log(data.value)
+})
+```
+
+**任意组件通信：** 通过 $on/$dispatch
+```javascript
+// 监听事件
+this.$on('customEvent', (data) => {
+  console.log(data)
+})
+
+// 停止监听
+this.$off('customEvent')
+// 或
+event.$stop()
+```
+
 ---
 
 ## API速查表
@@ -417,30 +441,140 @@ geolocation.subscribe({
 geolocation.unsubscribe()
 ```
 
-### 6. 传感器 sensor
+### 6. 文件存储 file
+
+> 需在manifest中声明: `{ "name": "system.file" }`
+> **注意**: 仅支持 `internal://` 协议路径
+
+```javascript
+import file from '@system.file'
+
+// 读取文本文件
+file.readText({
+  uri: 'internal://files/book.txt',
+  success: function(data) {
+    console.log(data.text)
+  }
+})
+
+// 读取二进制文件
+file.readArrayBuffer({
+  uri: 'internal://files/book.txt',
+  position: 0,
+  length: 1000,
+  success: function(data) {
+    console.log(data.buffer)
+  }
+})
+
+// 写入文本文件
+file.writeText({
+  uri: 'internal://files/output.txt',
+  text: 'Hello Vela',
+  success: function() {
+    console.log('写入成功')
+  }
+})
+
+// 写入二进制数据
+file.writeArrayBuffer({
+  uri: 'internal://files/data.bin',
+  buffer: uint8Array,
+  success: function() {
+    console.log('写入成功')
+  }
+})
+
+// 列出目录文件
+file.list({
+  uri: 'internal://files/books/',
+  success: function(data) {
+    console.log(data.fileList)
+  }
+})
+
+// 获取文件信息
+file.get({
+  uri: 'internal://files/book.txt',
+  success: function(data) {
+    console.log(data.length, data.lastModifiedTime)
+  }
+})
+
+// 删除文件
+file.delete({
+  uri: 'internal://files/book.txt'
+})
+
+// 移动文件
+file.move({
+  srcUri: 'internal://cache/book.txt',
+  dstUri: 'internal://files/book.txt'
+})
+
+// 复制文件
+file.copy({
+  srcUri: 'internal://files/book.txt',
+  dstUri: 'internal://files/book_copy.txt'
+})
+```
+
+**URI协议说明**:
+- `internal://files/` - 应用私有文件目录
+- `internal://cache/` - 缓存目录（可被清理）
+- `/Common/` - 应用资源目录（只读）
+
+### 7. 传感器 sensor
+
+> 需在manifest中声明: `{ "name": "system.sensor" }`
+
+#### 加速度计 (Accelerometer)
 
 ```javascript
 import sensor from '@system.sensor'
 
-// 监听加速度计
-sensor.subscribe({
-  sensor: 'accelerometer',
+// 订阅加速度计数据
+sensor.subscribeAccelerometer({
+  interval: 'normal',  // 'game' | 'ui' | 'normal'
   callback: function(data) {
     console.log(data.x, data.y, data.z)
   }
 })
 
-// 监听心率
-sensor.subscribe({
-  sensor: 'heartRate',
+// 取消订阅
+sensor.unsubscribeAccelerometer()
+```
+
+#### 气压计 (Pressure)
+
+```javascript
+// 订阅气压计数据
+sensor.subscribePressure({
   callback: function(data) {
-    console.log(data.heartRate)
+    console.log(data.pressure)  // 单位: hPa
   }
 })
 
-// 取消监听
-sensor.unsubscribe({ sensor: 'accelerometer' })
+// 取消订阅
+sensor.unsubscribePressure()
 ```
+
+#### 罗盘 (Compass)
+
+```javascript
+// 订阅罗盘数据
+sensor.subscribeCompass({
+  callback: function(data) {
+    console.log(data.direction)  // 0-360度
+    console.log(data.accuracy)    // 精度: 3高/2中/1低/-1不可信
+  }
+})
+
+// 取消订阅
+sensor.unsubscribeCompass()
+```
+
+**注意**: 不同传感器支持的设备不同，请参考官方文档确认设备兼容性。
 
 ### 7. 振动 vibrator
 
@@ -615,7 +749,29 @@ npm i
 </div>
 ```
 
-### 3. 自适应单位
+### 3. CSS 限制
+
+Vela 不支持以下 CSS 特性：
+
+| 不支持 | 说明 | 替代方案 |
+|--------|------|----------|
+| 后代选择器 `.a .b {}` | 无法使用 | 直接使用 class |
+| 子选择器 `.a > .b {}` | 无法使用 | 直接使用 class |
+| 兄弟选择器 `.a + .b {}` | 无法使用 | 直接使用 class |
+| 属性选择器 `[attr] {}` | 无法使用 | 直接使用 class |
+| 通用选择器 `* {}` | 无法使用 | 逐个指定 class |
+| 伪类 `:hover` `:active` `:focus` | 不支持 | 使用点击事件替代 |
+| 伪元素 `::before` `::after` | 不支持 | 使用实际元素 |
+
+**支持的 CSS 特性：**
+- class 选择器
+- Flexbox 布局 (display: flex)
+- 基础属性 (width, height, padding, margin, border-radius)
+- 文字样式 (font-size, font-weight, color, text-align)
+- 背景 (background-color)
+- 定位 (position: absolute/relative)
+
+### 4. 自适应单位
 
 #### px 单位
 

@@ -23,6 +23,7 @@
 |------|------|------|
 | [开发指南](./vela-dev-guide.md) | 官方API整理、环境搭建、常见问题 | 入门/进阶 |
 | [UI开发指南](./vela-ui-guide.md) | 通用UI设计规范、代码模板、素材 | 全阶段 |
+| [UI快速参考](./vela-ui-quickref.md) | 一页式速查表，经典UI模式 | 快速开发 |
 | [输入法组件](./input-method-guide.md) | 第三方输入法组件使用 | 需要输入功能 |
 | [实战教程](./ebook-app-tutorial.md) | 复杂项目完整分析 | 进阶学习 |
 | [AI速查](./AI-QUICKREF.md) | 最小上下文快速入口 | AI/人类 |
@@ -31,25 +32,39 @@
 
 ## OpenCode 集成
 
-本项目提供 **OpenCode 自定义工具**，可在 OpenCode 中直接调用：
+本项目提供 **OpenCode 自定义工具**，可在任何目录的 OpenCode 中直接调用。
+
+### 全局安装（推荐）
+
+```bash
+# 工具已安装到 ~/.config/opencode/tools/vela.ts
+# OpenCode 重启后自动加载
+```
 
 ### 工具列表
 
-| 工具 | 功能 |
-|------|------|
-| `velaApi` | 查询 API 参考（router/storage/file/sensor） |
-| `velaTemplate` | 获取项目模板（page/component/manifest） |
-| `velaUi` | 查询 UI 规范（colors/fonts/spacing/components） |
-| `velaQuickRef` | 快速参考（diff/lifecycle/devices/tips） |
+| 工具 | 功能 | 示例 |
+|------|------|------|
+| `velaApi` | 查询 API 参考 | router, storage, file, sensor, device |
+| `velaTemplate` | 获取项目模板 | page, settings, list, cover, manifest |
+| `velaUi` | 查询 UI 规范 | colors, fonts, spacing, listitem, switch, cover, multi, reader |
+| `velaQuickRef` | 快速参考 | diff, lifecycle, devices, tips, patterns |
 
-### 使用方式
+### 使用示例
 
-1. 克隆本项目作为开发目录
-2. OpenCode 会自动加载 `.opencode/tools/vela.ts`
-3. 直接对话调用工具，如：
-   - "查询 storage API"
-   - "给我一个页面模板"
-   - "UI颜色规范是什么"
+```
+用户: "查询 storage API"
+AI调用: velaApi({ api: "storage" })
+
+用户: "给我一个 settings 模板"
+AI调用: velaTemplate({ type: "settings" })
+
+用户: "查询 listitem"
+AI调用: velaUi({ item: "listitem" })
+
+用户: "查询 patterns"
+AI调用: velaQuickRef({ topic: "patterns" })
+```
 
 ---
 

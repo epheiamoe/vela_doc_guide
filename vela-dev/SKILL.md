@@ -108,6 +108,10 @@ storage.set({ key: 'xxx', value: 'xxx' });
 // 文件
 import file from '@system.file';
 file.readText({ uri: 'internal://files/xxx.txt' });
+
+// 传感器
+import sensor from '@system.sensor';
+sensor.subscribeAccelerometer({ callback: (data) => {} });
 ```
 
 ### 页面生命周期

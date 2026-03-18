@@ -185,7 +185,8 @@ fetch.fetch({ url: 'https://api.example.com' })
 
 ### 传感器
 ```javascript
-sensor.subscribe({ sensor: 'stepCounter' })
+import sensor from '@system.sensor';
+sensor.subscribeAccelerometer({ callback: (data) => {} });
 ```
 
 ---
